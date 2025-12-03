@@ -1,0 +1,58 @@
+name: Actualizar datos del sheet
+
+on:
+  # Ejecutar cada 4 horas
+  schedule:
+    - cron: '0 */4 * * *'
+  # También permite ejecución manual desde GitHub
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write  # Necesario para hacer commit y push
+    
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+      
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Ejecutar scraper
+        run: |
+          python scrape_sheets_final.py
+      
+      - name: Copiar JSON al frontend
+        run: |
+          if [ -f "scraped_data.json" ]; then
+            cp scraped_data.json web/src/data/scraped_data.json
+          fi
+      
+      - name: Verificar cambios
+        id: verify-changes
+        run: |
+          if [ -n "$(git status --porcelain scraped_data.json web/src/data/scraped_data.json)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit y push cambios
+        if: steps.verify-changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add scraped_data.json web/src/data/scraped_data.json
+          git commit -m "Auto-update: datos actualizados $(date +'%Y-%m-%d %H:%M:%S')"
+          git push
+
