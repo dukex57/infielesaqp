@@ -142,9 +142,9 @@ def main():
         with open(root_path, "w", encoding="utf-8") as f:
             json.dump(output, f, ensure_ascii=False, indent=2)
         
-        # Copiar también al frontend si existe la carpeta web
-        web_path = "web/src/data/scraped_data.json"
-        if os.path.exists("web/src/data"):
+        # Copiar también al frontend si existe la carpeta app
+        web_path = "app/src/data/scraped_data.json"
+        if os.path.exists("app/src/data"):
             shutil.copy2(root_path, web_path)
             print(f"Datos actualizados: {len(main_df)} filas, {len(main_df.columns)} columnas")
             print(f"Archivo guardado en: {root_path} y {web_path}")
