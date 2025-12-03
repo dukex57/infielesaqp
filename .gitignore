@@ -13,3 +13,6 @@ build/
 dist/
 .DS_Store
 *.log
+
+# Exclude app folder
+app/
